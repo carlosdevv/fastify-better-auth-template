@@ -1,13 +1,14 @@
 import { betterAuth } from 'better-auth';
-import { drizzleAdapter } from 'better-auth/adapters/drizzle';
+import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { admin, openAPI } from 'better-auth/plugins';
-import { db } from './db/index.ts';
+import { prisma } from './db/index.ts';
 
 const auth = betterAuth({
-  database: drizzleAdapter(db, {
-    provider: 'pg',
-    usePlural: true,
+  appName: 'Borderless API',
+  database: prismaAdapter(prisma, {
+    provider: 'postgresql',
   }),
+  trustedOrigins: ['http://localhost:3333'],
   plugins: [
     admin(),
     openAPI({
@@ -26,14 +27,11 @@ const auth = betterAuth({
     enabled: true,
   },
   advanced: {
-    cookiePrefix: 'fastify-forge',
-    database: {
-      generateId: false,
-    },
+    cookiePrefix: 'borderless-api',
   },
 });
 
 export type User = typeof auth.$Infer.Session.user;
 export type Session = typeof auth.$Infer.Session;
 
-export default auth;
+export { auth };

@@ -2,12 +2,12 @@ import closeWithGrace from 'close-with-grace';
 
 import { ajvFilePlugin } from '@fastify/multipart';
 import { buildApp } from './app.ts';
-import env from './config/env.config.ts';
+import { env } from './config/env.config.ts';
 
 async function startServer() {
   const app = await buildApp({
     logger: {
-      level: env.log.level,
+      level: 'info',
       redact: ['headers.authorization'],
     },
     ignoreDuplicateSlashes: true,
@@ -26,9 +26,9 @@ async function startServer() {
     await app.close();
   });
 
-  // Start server
   try {
-    await app.listen({ host: env.server.host, port: env.server.port });
+    await app.listen({ host: env.HOST, port: env.PORT });
+    app.log.info(`Server is running at http://${env.HOST}:${env.PORT}`);
   } catch (err) {
     app.log.error(err);
     process.exit(1);

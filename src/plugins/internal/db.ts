@@ -1,17 +1,17 @@
 import type { FastifyInstance } from 'fastify';
 import fp from 'fastify-plugin';
-import { db } from '../../db/index.ts';
+import { prisma } from '../../db/index.ts';
 
 declare module 'fastify' {
   interface FastifyInstance {
-    db: typeof db;
+    db: typeof prisma;
   }
 }
 
 async function dbPlugin(fastify: FastifyInstance) {
-  fastify.decorate('db', db);
+  fastify.decorate('db', prisma);
   fastify.addHook('onClose', async () => {
-    await db.$client.end();
+    await prisma.$disconnect();
   });
 }
 

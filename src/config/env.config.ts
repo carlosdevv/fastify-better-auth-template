@@ -1,41 +1,20 @@
-import { type Static, Type } from '@sinclair/typebox';
-import envSchema from 'env-schema';
+import 'dotenv/config';
+import { z } from 'zod';
 
-export const LogLevel = {
-  trace: 'trace',
-  debug: 'debug',
-  info: 'info',
-  warn: 'warn',
-  error: 'error',
-} as const;
-
-const schema = Type.Object({
-  POSTGRES_HOST: Type.String(),
-  POSTGRES_USER: Type.String(),
-  POSTGRES_PASSWORD: Type.String(),
-  POSTGRES_DB: Type.String(),
-  POSTGRES_PORT: Type.Number({ default: 5432 }),
-  LOG_LEVEL: Type.Enum(LogLevel),
-  HOST: Type.String({ default: 'localhost' }),
-  PORT: Type.Number({ default: 3000 }),
+const envSchema = z.object({
+  DATABASE_URL: z.string(),
+  BETTER_AUTH_SECRET: z.string(),
+  BETTER_AUTH_URL: z.string(),
+  HOST: z.string().default('localhost'),
+  PORT: z.coerce.number().default(3333),
+  NODE_ENV: z.enum(['test', 'development', 'production']).default('production'),
 });
 
-const env = envSchema<Static<typeof schema>>({
-  dotenv: true,
-  schema,
-});
+const _env = envSchema.safeParse(process.env);
 
-export default {
-  /* c8 ignore next */
-  version: process.env.npm_package_version ?? '0.0.0',
-  log: {
-    level: env.LOG_LEVEL,
-  },
-  server: {
-    host: env.HOST,
-    port: env.PORT,
-  },
-  db: {
-    url: `postgres://${env.POSTGRES_USER}:${env.POSTGRES_PASSWORD}@${env.POSTGRES_HOST}:${env.POSTGRES_PORT}/${env.POSTGRES_DB}?sslmode=disable`,
-  },
-};
+if (!_env.success) {
+  console.error('Invalid environment variables', _env.error.format());
+  throw new Error('Invalid environment variables.');
+}
+
+export const env = _env.data;

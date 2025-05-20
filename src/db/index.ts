@@ -1,11 +1,13 @@
-import { drizzle } from 'drizzle-orm/node-postgres';
-import pg from 'pg';
-import env from '../config/env.config.ts';
-import * as schema from './schema.ts';
+import { PrismaClient } from '@prisma/client';
+import { env } from '../config/env.config.ts';
 
-export const pool = new pg.Pool({
-  connectionString: env.db.url,
-  max: 10,
+export const prisma = new PrismaClient({
+  log: env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+  errorFormat: 'pretty',
 });
 
-export const db = drizzle({ client: pool, schema });
+process.on('beforeExit', async () => {
+  await prisma.$disconnect();
+});
+
+export default { prisma };

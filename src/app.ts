@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 
 import AutoLoad from '@fastify/autoload';
 import Fastify, { type FastifyServerOptions } from 'fastify';
+import { registerRoutes } from './routes/index.ts';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -13,15 +14,11 @@ export async function buildApp(options?: FastifyServerOptions) {
   await server.register(AutoLoad, {
     dir: path.join(__dirname, 'plugins'),
     dirNameRoutePrefix: false,
+  }).then(() => {
+    server.log.info('Plugins registered successfully');
   });
 
-  // Auto-load routes
-  server.register(AutoLoad, {
-    dir: path.join(__dirname, 'routes'),
-    autoHooks: true,
-    autoHooksPattern: /\.hook(?:\.ts|\.js|\.cjs|\.mjs)$/i,
-    cascadeHooks: true,
-  });
+  await server.register(registerRoutes);
 
   // Set error handler
   server.setErrorHandler((err, request, reply) => {

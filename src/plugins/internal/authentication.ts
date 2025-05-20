@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import FastifyBetterAuth from 'fastify-better-auth';
 import fp from 'fastify-plugin';
-import auth from '../../auth.ts';
+import { auth } from '../../auth.ts';
 
 declare module 'fastify' {
   export interface FastifyInstance {
