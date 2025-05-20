@@ -4,7 +4,7 @@ import { admin, openAPI } from 'better-auth/plugins';
 import { prisma } from './db/index.ts';
 
 const auth = betterAuth({
-  appName: 'Borderless API',
+  appName: 'Template API',
   database: prismaAdapter(prisma, {
     provider: 'postgresql',
   }),
@@ -27,7 +27,7 @@ const auth = betterAuth({
     enabled: true,
   },
   advanced: {
-    cookiePrefix: 'borderless-api',
+    cookiePrefix: 'template-api',
   },
 });
 
