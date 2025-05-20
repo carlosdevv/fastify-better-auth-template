@@ -4,7 +4,7 @@ import type { IAuthService } from '../services/interfaces/auth-service.interface
 import type { IAuthController } from './interfaces/auth-controller.interface.ts';
 
 export class AuthController implements IAuthController {
-  constructor(private readonly authService: IAuthService) { }
+  constructor(private readonly authService: IAuthService) {}
 
   async signIn(request: FastifyRequest, reply: FastifyReply) {
     try {
@@ -66,7 +66,7 @@ export class AuthController implements IAuthController {
 
   async revokeSession(
     request: FastifyRequest<{ Params: { userId: string } }>,
-    reply: FastifyReply
+    reply: FastifyReply,
   ) {
     try {
       const { userId } = request.params;
