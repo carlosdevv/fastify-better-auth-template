@@ -1,14 +1,14 @@
-import { betterAuth } from 'better-auth';
-import { prismaAdapter } from 'better-auth/adapters/prisma';
-import { admin, bearer, openAPI } from 'better-auth/plugins';
-import { prisma } from './db/index.ts';
+import { betterAuth } from "better-auth";
+import { prismaAdapter } from "better-auth/adapters/prisma";
+import { admin, bearer, openAPI } from "better-auth/plugins";
+import { prisma } from "./db/index.ts";
 
 const auth = betterAuth({
-  appName: 'Template API',
+  appName: "Borderless API",
   database: prismaAdapter(prisma, {
-    provider: 'postgresql',
+    provider: "postgresql",
   }),
-  trustedOrigins: ['http://localhost:3333'],
+  trustedOrigins: ["http://localhost:3333"],
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 1 week
     updateAge: 60 * 60 * 24, // 1 day
@@ -21,13 +21,13 @@ const auth = betterAuth({
     enabled: true,
   },
   advanced: {
-    cookiePrefix: 'template-api',
+    cookiePrefix: "borderless-api",
   },
   plugins: [
     bearer(),
     admin(),
     openAPI({
-      path: '/docs',
+      path: "/docs",
     }),
   ],
 });

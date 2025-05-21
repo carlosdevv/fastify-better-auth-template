@@ -15,7 +15,6 @@ export class AuthController implements IAuthController {
       const body = request.body as LoginDTO;
       const response = await this.authService.signIn(body);
 
-
       return reply.status(200).send({
         message: 'Login successful',
         data: response,

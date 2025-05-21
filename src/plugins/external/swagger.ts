@@ -10,8 +10,8 @@ async function swaggerPlugin(fastify: FastifyInstance) {
     openapi: {
       openapi: '3.1.1',
       info: {
-        title: 'Template API',
-        description: 'API Documentation for Template',
+        title: 'Borderless API',
+        description: 'API Documentation for Borderless',
         version: packageJson.version,
       },
       servers: [

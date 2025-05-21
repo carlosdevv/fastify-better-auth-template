@@ -10,7 +10,7 @@ Better-Auth é uma biblioteca moderna de autenticação para aplicações Node.j
 
 O Better-Auth está configurado no arquivo `src/auth.ts` com as seguintes configurações:
 
-- **Nome da Aplicação**: "Template API"
+- **Nome da Aplicação**: "Borderless API"
 - **Banco de Dados**: PostgreSQL via adaptador Prisma
 - **Origens Confiáveis**: http://localhost:3333
 - **Sessão**:
@@ -18,7 +18,7 @@ O Better-Auth está configurado no arquivo `src/auth.ts` com as seguintes config
   - **Tempo para Atualização**: 1 dia (60 _ 60 _ 24 segundos)
   - **Cache de Cookies**: Habilitado com duração de 7 dias
 - **Autenticação por Email/Senha**: Habilitada
-- **Prefixo dos Cookies**: "template-api"
+- **Prefixo dos Cookies**: "borderless-api"
 
 ## Plugins Utilizados
 

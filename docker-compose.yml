@@ -1,25 +1,25 @@
-version: '3.8'
+version: "3.8"
 
 services:
   postgres:
     image: postgres:latest
-    container_name: template-postgres
+    container_name: borderless-postgres
     ports:
       - "5432:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: template
+      POSTGRES_DB: borderless
     volumes:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
     networks:
-      - template-network
+      - borderless-network
 
 networks:
-  template-network:
+  borderless-network:
     driver: bridge
 
 volumes:
-  postgres_data: 
+  postgres_data:
     driver: bridge
