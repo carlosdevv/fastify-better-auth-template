@@ -1,10 +1,7 @@
 import type { FastifyInstance, FastifyRequest } from 'fastify';
-import { AuthController } from '../../../controllers/auth.controller.ts';
-import type { IAuthService } from '../../../services/interfaces/auth-service.interface.ts';
+import type { AuthController } from '../../controllers/auth.controller.ts';
 
-export async function adminRoutes(fastify: FastifyInstance, authService: IAuthService) {
-  const authController = new AuthController(authService);
-
+export function setupAdminRoutes(fastify: FastifyInstance, authController: AuthController) {
   fastify.route({
     method: 'POST',
     url: '/revoke-sessions',

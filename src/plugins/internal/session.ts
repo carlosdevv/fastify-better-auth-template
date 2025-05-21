@@ -2,6 +2,8 @@ import { fromNodeHeaders } from 'better-auth/node';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import fp from 'fastify-plugin';
 import type { Session } from '../../auth.ts';
+import { ErrorDomain } from '../../errors/app-error.ts';
+import { UnauthorizedError } from '../../errors/common-errors.ts';
 
 declare module 'fastify' {
   interface FastifyRequest {
@@ -25,13 +27,26 @@ async function sessionPlugin(fastify: FastifyInstance) {
       });
 
       if (!session?.user) {
-        return reply.unauthorized('You must be logged in to access this resource.');
+        throw new UnauthorizedError(
+          'You need to be logged in to access this resource.',
+          ErrorDomain.AUTH,
+          { requestId: request.id },
+        );
       }
 
       request.session = session;
     } catch (error) {
+      if (error instanceof UnauthorizedError) {
+        return reply.errorResponse(error);
+      }
+
       fastify.log.error(error, 'Error verifying authentication');
-      return reply.unauthorized('Error verifying authentication.');
+      return reply.errorResponse(
+        new UnauthorizedError('Error verifying authentication.', ErrorDomain.AUTH, {
+          requestId: request.id,
+          originalError: error instanceof Error ? error.message : String(error),
+        }),
+      );
     }
   };
 
@@ -40,5 +55,5 @@ async function sessionPlugin(fastify: FastifyInstance) {
 
 export default fp(sessionPlugin, {
   name: 'session-plugin',
-  dependencies: ['auth-plugin'],
+  dependencies: ['auth-plugin', 'error-handler'],
 });

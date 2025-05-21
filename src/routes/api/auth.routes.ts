@@ -1,9 +1,10 @@
 import type { FastifyInstance } from 'fastify';
-import { AuthController } from '../../../controllers/auth.controller.ts';
-import type { IAuthService } from '../../../services/interfaces/auth-service.interface.ts';
+import { zodToJsonSchema } from 'zod-to-json-schema';
+import type { AuthController } from '../../controllers/auth.controller.ts';
+import { loginResponseSchema } from '../../models/auth.model.ts';
 
-export async function authRoutes(fastify: FastifyInstance, authService: IAuthService) {
-  const authController = new AuthController(authService);
+export function setupAuthRoutes(fastify: FastifyInstance, authController: AuthController) {
+  const loginResponseJsonSchema = zodToJsonSchema(loginResponseSchema, { $refStrategy: 'none' });
 
   fastify.route({
     method: 'POST',
@@ -21,24 +22,7 @@ export async function authRoutes(fastify: FastifyInstance, authService: IAuthSer
         },
       },
       response: {
-        200: {
-          description: 'Login successful',
-          type: 'object',
-          properties: {
-            accessToken: { type: 'string' },
-            expiresIn: { type: 'number' },
-            user: {
-              type: 'object',
-              properties: {
-                id: { type: 'string' },
-                email: { type: 'string' },
-                name: { type: 'string' },
-                role: { type: 'string' },
-                emailVerified: { type: 'boolean' },
-              },
-            },
-          },
-        },
+        200: loginResponseJsonSchema,
         401: {
           description: 'Login failed',
           type: 'object',

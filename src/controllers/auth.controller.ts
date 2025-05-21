@@ -4,12 +4,17 @@ import type { IAuthService } from '../services/interfaces/auth-service.interface
 import type { IAuthController } from './interfaces/auth-controller.interface.ts';
 
 export class AuthController implements IAuthController {
-  constructor(private readonly authService: IAuthService) {}
+  private readonly authService: IAuthService;
+
+  constructor({ authService }: { authService: IAuthService }) {
+    this.authService = authService;
+  }
 
   async signIn(request: FastifyRequest, reply: FastifyReply) {
     try {
       const body = request.body as LoginDTO;
       const response = await this.authService.signIn(body);
+
 
       return reply.status(200).send({
         message: 'Login successful',

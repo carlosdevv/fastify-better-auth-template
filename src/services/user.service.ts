@@ -1,71 +1,114 @@
-import { prisma } from '../db/index.ts';
+import { ErrorDomain } from '../errors/app-error.ts';
+import {
+  ConflictError,
+  InternalServerError,
+  NotFoundError,
+  ValidationError,
+} from '../errors/common-errors.ts';
 import type { UpdateUserDTO } from '../models/user.model.ts';
+import type { IUserRepository } from '../repositories/interfaces/user-repository.interface.ts';
 import type { IUserService } from './interfaces/user-service.interface.ts';
 
 export class UserService implements IUserService {
-  async findById(id: string) {
+  private readonly userRepository: IUserRepository;
+
+  constructor({ userRepository }: { userRepository: IUserRepository }) {
+    this.userRepository = userRepository;
+  }
+
+  async getUsers() {
     try {
-      return await prisma.user.findUnique({
-        where: { id },
-      });
+      return await this.userRepository.findMany();
     } catch (error) {
-      console.error('Error finding user by ID:', error);
-      return null;
+      throw new InternalServerError(
+        `Error fetching users: ${error instanceof Error ? error.message : String(error)}`,
+        ErrorDomain.USER,
+      );
     }
   }
 
-  async findByEmail(email: string) {
+  async getUserById(id: string) {
     try {
-      return await prisma.user.findUnique({
-        where: { email },
-      });
-    } catch (error) {
-      console.error('Error finding user by email:', error);
-      return null;
-    }
-  }
+      const user = await this.userRepository.findById(id);
 
-  async findAll() {
-    try {
-      return await prisma.user.findMany();
-    } catch (error) {
-      console.error('Error finding all users:', error);
-      return [];
-    }
-  }
-
-  async update(id: string, data: UpdateUserDTO) {
-    try {
-      const existingUser = await this.findById(id);
-      if (!existingUser) {
-        throw new Error('User not found');
+      if (!user) {
+        throw new NotFoundError(`User with ID ${id} not found.`, ErrorDomain.USER, {
+          userId: id,
+        });
       }
 
-      return await prisma.user.update({
-        where: { id },
-        data: data,
-      });
+      return user;
     } catch (error) {
-      console.error('Error updating user:', error);
-      throw error;
+      if (error instanceof NotFoundError) {
+        throw error;
+      }
+
+      throw new InternalServerError(
+        `Error fetching user: ${error instanceof Error ? error.message : String(error)}`,
+        ErrorDomain.USER,
+      );
     }
   }
 
-  async delete(id: string) {
+  async updateUser(id: string, data: UpdateUserDTO) {
     try {
-      const existingUser = await this.findById(id);
-      if (!existingUser) {
-        throw new Error('User not found');
+      const userExists = await this.userRepository.findById(id);
+
+      if (!userExists) {
+        throw new NotFoundError(`User with ID ${id} not found.`, ErrorDomain.USER, {
+          userId: id,
+        });
       }
 
-      await prisma.user.delete({
-        where: { id },
-      });
+      if (data.email) {
+        const emailExists = await this.userRepository.findByEmail(data.email);
 
-      return existingUser;
+        if (emailExists && emailExists.id !== id) {
+          throw new ConflictError(`Email ${data.email} already in use.`, ErrorDomain.USER, {
+            email: data.email,
+          });
+        }
+      }
+
+      return await this.userRepository.update(id, data);
     } catch (error) {
-      console.error('Error deleting user:', error);
-      throw error;
+      if (
+        error instanceof NotFoundError ||
+        error instanceof ConflictError ||
+        error instanceof ValidationError
+      ) {
+        throw error;
+      }
+
+      throw new InternalServerError(
+        `Error updating user: ${error instanceof Error ? error.message : String(error)}`,
+        ErrorDomain.USER,
+      );
+    }
+  }
+
+  async deleteUser(id: string) {
+    try {
+      const userExists = await this.userRepository.findById(id);
+
+      if (!userExists) {
+        throw new NotFoundError(`User with ID ${id} not found.`, ErrorDomain.USER, {
+          userId: id,
+        });
+      }
+
+      await this.userRepository.delete(id);
+
+      return { success: true, message: 'User deleted successfully.' };
+    } catch (error) {
+      if (error instanceof NotFoundError) {
+        throw error;
+      }
+
+      throw new InternalServerError(
+        `Error deleting user: ${error instanceof Error ? error.message : String(error)}`,
+        ErrorDomain.USER,
+      );
     }
   }
 }

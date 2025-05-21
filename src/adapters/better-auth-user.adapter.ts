@@ -1,5 +1,5 @@
+import type { PrismaClient } from '@prisma/client';
 import { auth } from '../auth.ts';
-import { prisma } from '../db/index.ts';
 import type { LoginDTO } from '../models/auth.model.ts';
 import type { CreateUserDTO } from '../models/user.model.ts';
 import type {
@@ -9,6 +9,12 @@ import type {
 } from '../services/interfaces/auth-service.interface.ts';
 
 export class BetterAuthUserAdapter implements IAuthService {
+  private readonly prisma: PrismaClient;
+
+  constructor({ prisma }: { prisma: PrismaClient }) {
+    this.prisma = prisma;
+  }
+
   async signIn(data: LoginDTO): Promise<AuthResponse> {
     try {
       const result = await auth.api.signInEmail({
@@ -18,27 +24,18 @@ export class BetterAuthUserAdapter implements IAuthService {
         },
       });
 
-      const sessionData = await auth.api.getSession({
-        headers: new Headers({
-          Authorization: `Bearer ${result.token}`,
-        }),
-      });
-
-      if (!sessionData) {
-        throw new Error('Failed to get session');
-      }
+      const { token, user } = result;
 
       return {
         user: {
-          id: sessionData.user.id,
-          email: sessionData.user.email,
-          name: sessionData.user.name || undefined,
-          role: sessionData.user.role || 'USER',
-          emailVerified: sessionData.user.emailVerified,
+          id: user.id,
+          email: user.email,
+          name: user.name || undefined,
+          emailVerified: user.emailVerified,
         },
         token: {
-          accessToken: result.token,
-          expiresIn: 15 * 60, // 15 minutes in seconds
+          accessToken: token,
+          expiresIn: 60 * 60 * 24 * 7, // 1 week
         },
       };
     } catch (error) {
@@ -133,7 +130,7 @@ export class BetterAuthUserAdapter implements IAuthService {
 
   async revokeSession(userId: string): Promise<void> {
     try {
-      const user = await prisma.user.findUnique({
+      const user = await this.prisma.user.findUnique({
         where: { id: userId },
         include: {
           sessions: true,

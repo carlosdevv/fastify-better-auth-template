@@ -1,6 +1,6 @@
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
-import { admin, openAPI } from 'better-auth/plugins';
+import { admin, bearer, openAPI } from 'better-auth/plugins';
 import { prisma } from './db/index.ts';
 
 const auth = betterAuth({
@@ -9,18 +9,12 @@ const auth = betterAuth({
     provider: 'postgresql',
   }),
   trustedOrigins: ['http://localhost:3333'],
-  plugins: [
-    admin(),
-    openAPI({
-      path: '/docs',
-    }),
-  ],
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 1 week
     updateAge: 60 * 60 * 24, // 1 day
     cookieCache: {
       enabled: true,
-      maxAge: 5 * 60, // Cache duration in seconds
+      maxAge: 60 * 60 * 24 * 7, // 1 week
     },
   },
   emailAndPassword: {
@@ -29,6 +23,13 @@ const auth = betterAuth({
   advanced: {
     cookiePrefix: 'template-api',
   },
+  plugins: [
+    bearer(),
+    admin(),
+    openAPI({
+      path: '/docs',
+    }),
+  ],
 });
 
 export type User = typeof auth.$Infer.Session.user;

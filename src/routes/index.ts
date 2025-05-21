@@ -1,33 +1,32 @@
 import type { FastifyInstance } from 'fastify';
 import { container } from '../container.ts';
-import { adminRoutes } from './api/v1/admin.routes.ts';
-import { authRoutes } from './api/v1/auth.routes.ts';
-import { userRoutes } from './api/v1/user.routes.ts';
+import { setupAdminRoutes } from './api/admin.routes.ts';
+import { setupAuthRoutes } from './api/auth.routes.ts';
+import { setupUserRoutes } from './api/user.routes.ts';
 
 export async function registerRoutes(fastify: FastifyInstance) {
-  // Get services from container
-  const userService = container.resolve('userService');
-  const authService = container.resolve('authService');
+  const userController = container.resolve('userController');
+  const authController = container.resolve('authController');
 
   fastify.register(
     async (instance) => {
-      await authRoutes(instance, authService);
+      setupAuthRoutes(instance, authController);
     },
-    { prefix: '/api/v1/auth' },
+    { prefix: '/api/auth' },
   );
 
   fastify.register(
     async (instance) => {
-      await userRoutes(instance, userService);
+      setupUserRoutes(instance, userController);
     },
-    { prefix: '/api/v1/users' },
+    { prefix: '/api/users' },
   );
 
   fastify.register(
     async (instance) => {
-      await adminRoutes(instance, authService);
+      setupAdminRoutes(instance, authController);
     },
-    { prefix: '/api/v1/admin' },
+    { prefix: '/api/admin' },
   );
 
   fastify.log.info('Routes registered successfully');

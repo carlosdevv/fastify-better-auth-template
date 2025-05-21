@@ -1,1 +1,11 @@
-npx --no-install commitlint --edit "$1"
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "Verifying commit message format..."
+npx --no-install commitlint --edit "$1" || (
+  echo "ERROR: The commit message does not follow the expected format!"
+  echo "The correct format is: type: message"
+  echo "Allowed types: feat, fix, chore, docs, style, refactor, etc."
+  echo "Example: feat: adds new login functionality"
+  exit 1
+)

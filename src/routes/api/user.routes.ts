@@ -1,12 +1,9 @@
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { zodToJsonSchema } from 'zod-to-json-schema';
-import { UserController } from '../../../controllers/user.controller.ts';
-import { type UpdateUserDTO, updateUserSchema } from '../../../models/user.model.ts';
-import type { IUserService } from '../../../services/interfaces/user-service.interface.ts';
+import type { UserController } from '../../controllers/user.controller.ts';
+import { type UpdateUserDTO, updateUserSchema } from '../../models/user.model.ts';
 
-export async function userRoutes(fastify: FastifyInstance, userService: IUserService) {
-  const userController = new UserController(userService);
-
+export function setupUserRoutes(fastify: FastifyInstance, userController: UserController) {
   const updateUserJsonSchema = zodToJsonSchema(updateUserSchema, { $refStrategy: 'none' });
 
   fastify.route({
@@ -36,7 +33,7 @@ export async function userRoutes(fastify: FastifyInstance, userService: IUserSer
         },
       },
     },
-    preHandler: [fastify.authenticate, fastify.isAdmin],
+    preHandler: [fastify.authenticate],
     handler: userController.getUsers.bind(userController),
   });
 

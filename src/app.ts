@@ -11,41 +11,17 @@ export async function buildApp(options?: FastifyServerOptions) {
   const server = Fastify(options);
 
   // Auto-load plugins
-  await server.register(AutoLoad, {
-    dir: path.join(__dirname, 'plugins'),
-    dirNameRoutePrefix: false,
-  }).then(() => {
-    server.log.info('Plugins registered successfully');
-  });
+  await server
+    .register(AutoLoad, {
+      dir: path.join(__dirname, 'plugins'),
+      dirNameRoutePrefix: false,
+    })
+    .then(() => {
+      server.log.info('Plugins registered successfully');
+    });
 
   await server.register(registerRoutes);
 
-  // Set error handler
-  server.setErrorHandler((err, request, reply) => {
-    server.log.error(
-      {
-        err,
-        request: {
-          method: request.method,
-          url: request.url,
-          query: request.query,
-          params: request.params,
-        },
-      },
-      'Unhandled error occurred',
-    );
-
-    reply.code(err.statusCode ?? 500);
-
-    let message = 'Internal Server Error';
-    if (err.statusCode && err.statusCode < 500) {
-      message = err.message;
-    }
-
-    return { message };
-  });
-
-  // This is used to avoid attacks to find valid routes
   server.setNotFoundHandler(
     {
       preHandler: server.rateLimit({
@@ -68,7 +44,15 @@ export async function buildApp(options?: FastifyServerOptions) {
 
       reply.code(404);
 
-      return { message: 'Not Found' };
+      return {
+        error: {
+          code: 'SYSTEM-NOT_FOUND-404',
+          type: 'NOT_FOUND',
+          domain: 'SYSTEM',
+          message: 'Resource not found',
+          timestamp: new Date().toISOString(),
+        },
+      };
     },
   );
 
